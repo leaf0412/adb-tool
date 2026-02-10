@@ -26,4 +26,5 @@ tauri-plugin-shell = "2.3.5"
 chrono = "0.4.43"
 dirs = "6.0.0"
 libc = "0.2.181"
+tauri-plugin-dialog = "2.6.0"
 

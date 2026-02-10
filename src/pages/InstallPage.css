@@ -1,0 +1,317 @@
+.install-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.install-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+/* Drop zone */
+.install-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  border: 2px dashed #c0c0d0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.install-dropzone:hover {
+  border-color: #1a1a2e;
+  background-color: #f0f0f8;
+}
+
+.install-dropzone--dragover {
+  border-color: #1a1a2e;
+  background-color: #e8e8f4;
+  border-style: solid;
+}
+
+.install-dropzone--selected {
+  border-color: #2e7d32;
+  border-style: solid;
+  background-color: #f1f8f1;
+  cursor: default;
+}
+
+.install-dropzone--selected:hover {
+  border-color: #2e7d32;
+  background-color: #f1f8f1;
+}
+
+.install-dropzone-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.install-dropzone-hint-main {
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+}
+
+.install-dropzone-hint-sub {
+  font-size: 12px;
+  color: #999;
+}
+
+.install-dropzone-selected {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+}
+
+.install-dropzone-filename {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2e7d32;
+  word-break: break-all;
+}
+
+/* Sections */
+.install-section {
+  padding: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.install-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.install-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+/* Buttons */
+.install-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #1a1a2e;
+  color: #ffffff;
+  transition: background-color 0.15s;
+}
+
+.install-btn:hover:not(:disabled) {
+  background-color: #2d2d5e;
+}
+
+.install-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.install-btn--primary {
+  padding: 10px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.install-btn--small {
+  padding: 4px 12px;
+  font-size: 12px;
+  background-color: #4a4a6a;
+}
+
+.install-btn--small:hover:not(:disabled) {
+  background-color: #5a5a7a;
+}
+
+.install-btn--clear {
+  padding: 4px 12px;
+  font-size: 12px;
+  background-color: #757575;
+}
+
+.install-btn--clear:hover:not(:disabled) {
+  background-color: #616161;
+}
+
+.install-btn--fix {
+  margin-top: 8px;
+  background-color: #e65100;
+}
+
+.install-btn--fix:hover:not(:disabled) {
+  background-color: #bf360c;
+}
+
+/* Empty state */
+.install-empty {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-size: 13px;
+}
+
+/* Device list */
+.install-device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.install-device-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.install-device-item:hover {
+  background-color: #f8f8fc;
+}
+
+.install-device-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #1a1a2e;
+}
+
+.install-device-model {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.install-device-serial {
+  font-size: 12px;
+  color: #888;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  margin-left: auto;
+}
+
+/* Results */
+.install-results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.install-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.install-result-card {
+  padding: 14px 16px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.install-result-card--success {
+  border-color: #2e7d32;
+  border-left-width: 4px;
+}
+
+.install-result-card--error {
+  border-color: #c62828;
+  border-left-width: 4px;
+}
+
+.install-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.install-result-device {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.install-result-serial {
+  font-size: 12px;
+  color: #888;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+}
+
+.install-result-success {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2e7d32;
+}
+
+.install-result-error-text {
+  font-size: 13px;
+  color: #c62828;
+  line-height: 1.5;
+}
+
+.install-result-error-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.install-result-field {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.install-result-label {
+  font-weight: 500;
+  color: #666;
+  margin-right: 6px;
+}
+
+.install-result-details {
+  margin-top: 10px;
+}
+
+.install-result-details summary {
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  user-select: none;
+}
+
+.install-result-details summary:hover {
+  color: #555;
+}
+
+.install-result-raw {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+  max-height: 200px;
+  overflow-y: auto;
+}

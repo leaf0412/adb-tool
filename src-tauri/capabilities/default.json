@@ -16,6 +16,7 @@
       "identifier": "shell:allow-spawn",
       "allow": [{ "name": "binaries/adb", "sidecar": true, "args": true }]
     },
-    "shell:allow-kill"
+    "shell:allow-kill",
+    "dialog:default"
   ]
 }
