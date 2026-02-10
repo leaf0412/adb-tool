@@ -86,8 +86,10 @@ jobs:
       - name: Setup ADB sidecar (macOS)
         if: matrix.platform == 'macos'
         run: |
+          cp platform-tools/adb src-tauri/adb-universal-apple-darwin
           cp platform-tools/adb src-tauri/adb-aarch64-apple-darwin
           cp platform-tools/adb src-tauri/adb-x86_64-apple-darwin
+          chmod +x src-tauri/adb-universal-apple-darwin
           chmod +x src-tauri/adb-aarch64-apple-darwin
           chmod +x src-tauri/adb-x86_64-apple-darwin
 
