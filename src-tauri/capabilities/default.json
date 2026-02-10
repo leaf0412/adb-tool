@@ -7,9 +7,15 @@
     "core:default",
     "opener:default",
     "shell:allow-open",
-    "shell:allow-execute",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [{ "name": "binaries/adb", "sidecar": true, "args": true }]
+    },
     "shell:allow-stdin-write",
-    "shell:allow-spawn",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [{ "name": "binaries/adb", "sidecar": true, "args": true }]
+    },
     "shell:allow-kill"
   ]
 }
