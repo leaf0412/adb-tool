@@ -1,0 +1,220 @@
+.oplog-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Header */
+.oplog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.oplog-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+/* Filters bar */
+.oplog-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.oplog-select {
+  padding: 6px 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  background-color: #ffffff;
+  color: #1a1a2e;
+  outline: none;
+  cursor: pointer;
+  min-width: 120px;
+  transition: border-color 0.15s;
+}
+
+.oplog-select:focus {
+  border-color: #1a1a2e;
+}
+
+/* Buttons */
+.oplog-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #1a1a2e;
+  color: #ffffff;
+  transition: background-color 0.15s;
+  white-space: nowrap;
+}
+
+.oplog-btn:hover:not(:disabled) {
+  background-color: #2d2d5e;
+}
+
+.oplog-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Error banner */
+.oplog-error {
+  padding: 10px 14px;
+  border-radius: 6px;
+  background-color: #fdecea;
+  color: #b71c1c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Empty state */
+.oplog-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+}
+
+/* Log list */
+.oplog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Log entry card */
+.oplog-entry {
+  padding: 14px 16px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  transition: border-color 0.15s;
+}
+
+.oplog-entry:hover {
+  border-color: #c0c0c0;
+}
+
+.oplog-entry--fail {
+  border-left: 4px solid #c62828;
+  background-color: #fffbfb;
+}
+
+/* Entry header row */
+.oplog-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.oplog-entry-timestamp {
+  font-size: 12px;
+  color: #888;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  white-space: nowrap;
+}
+
+.oplog-entry-type {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #1a1a2e;
+}
+
+.oplog-entry-device {
+  font-size: 12px;
+  color: #666;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+}
+
+.oplog-entry-status {
+  margin-left: auto;
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.oplog-entry-status--success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.oplog-entry-status--fail {
+  background-color: #fdecea;
+  color: #c62828;
+}
+
+/* Detail line */
+.oplog-entry-detail {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+/* Error message for failed entries */
+.oplog-entry-error {
+  font-size: 12px;
+  color: #c62828;
+  background-color: #fdecea;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* Expandable raw output */
+.oplog-entry-raw {
+  margin-top: 8px;
+  border: none;
+}
+
+.oplog-entry-raw summary {
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.oplog-entry-raw summary:hover {
+  color: #1a1a2e;
+}
+
+.oplog-entry-raw-content {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background-color: #1e1e1e;
+  border-radius: 6px;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: #d4d4d4;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 200px;
+  overflow-y: auto;
+}
