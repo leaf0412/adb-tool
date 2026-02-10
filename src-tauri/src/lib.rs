@@ -1,6 +1,7 @@
 mod adb;
 mod error_codes;
 mod logcat;
+mod op_log;
 
 // ---------------------------------------------------------------------------
 // Tauri commands — thin wrappers around adb module functions
@@ -154,6 +155,15 @@ async fn stop_logcat(app: tauri::AppHandle, serial: String) -> Result<(), String
     logcat::stop_stream(&app, &serial).await
 }
 
+#[tauri::command]
+fn get_op_logs(
+    state: tauri::State<'_, op_log::OpLogState>,
+    op_type: Option<String>,
+    device: Option<String>,
+) -> Vec<op_log::OpLogEntry> {
+    op_log::get_entries(&state, op_type.as_deref(), device.as_deref())
+}
+
 // ---------------------------------------------------------------------------
 // App entry point
 // ---------------------------------------------------------------------------
@@ -166,6 +176,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .manage(logcat::LogcatState::new())
+        .manage(op_log::OpLogState::new())
         .invoke_handler(tauri::generate_handler![
             adb_version,
             get_devices,
@@ -186,6 +197,7 @@ pub fn run() {
             start_server,
             start_logcat,
             stop_logcat,
+            get_op_logs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
