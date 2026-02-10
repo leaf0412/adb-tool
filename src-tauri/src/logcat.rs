@@ -202,7 +202,7 @@ pub async fn start_stream(app: &AppHandle, serial: &str) -> Result<u32, String> 
     // Spawn sidecar with streaming
     let (mut rx, child) = app
         .shell()
-        .sidecar("binaries/adb")
+        .sidecar("adb")
         .map_err(|e| format!("Failed to create sidecar: {}", e))?
         .args(&["-s", serial, "logcat", "-v", "threadtime"])
         .spawn()

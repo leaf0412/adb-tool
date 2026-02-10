@@ -9,12 +9,12 @@
     "shell:allow-open",
     {
       "identifier": "shell:allow-execute",
-      "allow": [{ "name": "binaries/adb", "sidecar": true, "args": true }]
+      "allow": [{ "name": "adb", "sidecar": true, "args": true }]
     },
     "shell:allow-stdin-write",
     {
       "identifier": "shell:allow-spawn",
-      "allow": [{ "name": "binaries/adb", "sidecar": true, "args": true }]
+      "allow": [{ "name": "adb", "sidecar": true, "args": true }]
     },
     "shell:allow-kill",
     "dialog:default"

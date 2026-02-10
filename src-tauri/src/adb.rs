@@ -53,7 +53,7 @@ pub struct InstallResult {
 pub async fn exec(app: &AppHandle, args: &[&str]) -> Result<String, String> {
     let output = app
         .shell()
-        .sidecar("binaries/adb")
+        .sidecar("adb")
         .map_err(|e| format!("Failed to create sidecar: {}", e))?
         .args(args)
         .output()
