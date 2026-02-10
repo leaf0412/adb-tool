@@ -28,21 +28,48 @@ async fn get_device_detail(
 #[tauri::command]
 async fn install_apk(
     app: tauri::AppHandle,
+    state: tauri::State<'_, op_log::OpLogState>,
     serial: String,
     apk_path: String,
     flags: Vec<String>,
 ) -> Result<adb::InstallResult, String> {
     let flag_refs: Vec<&str> = flags.iter().map(|s| s.as_str()).collect();
-    adb::install_apk(&app, &serial, &apk_path, &flag_refs).await
+    let result = adb::install_apk(&app, &serial, &apk_path, &flag_refs).await?;
+    let file_name = apk_path.rsplit('/').next().or_else(|| apk_path.rsplit('\\').next()).unwrap_or(&apk_path);
+    op_log::add_entry(&state, op_log::OpLogEntry {
+        timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        op_type: "install".to_string(),
+        device: serial.clone(),
+        detail: format!("安装 {}", file_name),
+        success: result.success,
+        error_message: result.error_message_cn.clone(),
+        raw_output: Some(result.raw_output.clone()),
+    });
+    Ok(result)
 }
 
 #[tauri::command]
 async fn uninstall_app(
     app: tauri::AppHandle,
+    state: tauri::State<'_, op_log::OpLogState>,
     serial: String,
     package_name: String,
 ) -> Result<String, String> {
-    adb::uninstall_app(&app, &serial, &package_name).await
+    let result = adb::uninstall_app(&app, &serial, &package_name).await;
+    let (success, error_msg) = match &result {
+        Ok(_) => (true, None),
+        Err(e) => (false, Some(e.clone())),
+    };
+    op_log::add_entry(&state, op_log::OpLogEntry {
+        timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        op_type: "uninstall".to_string(),
+        device: serial.clone(),
+        detail: format!("卸载 {}", package_name),
+        success,
+        error_message: error_msg,
+        raw_output: None,
+    });
+    result
 }
 
 #[tauri::command]
@@ -84,30 +111,77 @@ async fn launch_app(
 #[tauri::command]
 async fn take_screenshot(
     app: tauri::AppHandle,
+    state: tauri::State<'_, op_log::OpLogState>,
     serial: String,
     local_path: String,
 ) -> Result<String, String> {
-    adb::screenshot(&app, &serial, &local_path).await
+    let result = adb::screenshot(&app, &serial, &local_path).await;
+    let (success, error_msg) = match &result {
+        Ok(_) => (true, None),
+        Err(e) => (false, Some(e.clone())),
+    };
+    op_log::add_entry(&state, op_log::OpLogEntry {
+        timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        op_type: "screenshot".to_string(),
+        device: serial.clone(),
+        detail: format!("截图 → {}", local_path),
+        success,
+        error_message: error_msg,
+        raw_output: None,
+    });
+    result
 }
 
 #[tauri::command]
 async fn push_file(
     app: tauri::AppHandle,
+    state: tauri::State<'_, op_log::OpLogState>,
     serial: String,
     local_path: String,
     remote_path: String,
 ) -> Result<String, String> {
-    adb::push_file(&app, &serial, &local_path, &remote_path).await
+    let result = adb::push_file(&app, &serial, &local_path, &remote_path).await;
+    let file_name = local_path.rsplit('/').next().or_else(|| local_path.rsplit('\\').next()).unwrap_or(&local_path);
+    let (success, error_msg) = match &result {
+        Ok(_) => (true, None),
+        Err(e) => (false, Some(e.clone())),
+    };
+    op_log::add_entry(&state, op_log::OpLogEntry {
+        timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        op_type: "upload".to_string(),
+        device: serial.clone(),
+        detail: format!("上传 {} → {}", file_name, remote_path),
+        success,
+        error_message: error_msg,
+        raw_output: None,
+    });
+    result
 }
 
 #[tauri::command]
 async fn pull_file(
     app: tauri::AppHandle,
+    state: tauri::State<'_, op_log::OpLogState>,
     serial: String,
     remote_path: String,
     local_path: String,
 ) -> Result<String, String> {
-    adb::pull_file(&app, &serial, &remote_path, &local_path).await
+    let result = adb::pull_file(&app, &serial, &remote_path, &local_path).await;
+    let file_name = remote_path.rsplit('/').next().unwrap_or(&remote_path);
+    let (success, error_msg) = match &result {
+        Ok(_) => (true, None),
+        Err(e) => (false, Some(e.clone())),
+    };
+    op_log::add_entry(&state, op_log::OpLogEntry {
+        timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        op_type: "download".to_string(),
+        device: serial.clone(),
+        detail: format!("下载 {} → {}", file_name, local_path),
+        success,
+        error_message: error_msg,
+        raw_output: None,
+    });
+    result
 }
 
 #[tauri::command]

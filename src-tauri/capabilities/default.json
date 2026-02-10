@@ -17,7 +17,6 @@
       "allow": [{ "name": "binaries/adb", "sidecar": true, "args": true }]
     },
     "shell:allow-kill",
-    "dialog:default",
-    "core:asset:default"
+    "dialog:default"
   ]
 }
