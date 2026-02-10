@@ -1,4 +1,11 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import { useRef } from "react";
+import DevicesPage from "../pages/DevicesPage";
+import InstallPage from "../pages/InstallPage";
+import AppsPage from "../pages/AppsPage";
+import LogcatPage from "../pages/LogcatPage";
+import FilesPage from "../pages/FilesPage";
+import OpLogPage from "../pages/OpLogPage";
 import "./Layout.css";
 
 const navItems = [
@@ -10,7 +17,21 @@ const navItems = [
   { to: "/oplog", label: "操作记录" },
 ];
 
+const pages: { path: string; component: React.ReactNode }[] = [
+  { path: "/", component: <DevicesPage /> },
+  { path: "/install", component: <InstallPage /> },
+  { path: "/apps", component: <AppsPage /> },
+  { path: "/logcat", component: <LogcatPage /> },
+  { path: "/files", component: <FilesPage /> },
+  { path: "/oplog", component: <OpLogPage /> },
+];
+
 function Layout() {
+  const { pathname } = useLocation();
+  // Track which pages have been visited so we only mount on first visit
+  const visited = useRef(new Set<string>([pathname]));
+  visited.current.add(pathname);
+
   return (
     <div className="layout">
       <aside className="sidebar">
@@ -31,7 +52,17 @@ function Layout() {
         </nav>
       </aside>
       <main className="content">
-        <Outlet />
+        {pages.map(({ path, component }) => {
+          if (!visited.current.has(path)) return null;
+          return (
+            <div
+              key={path}
+              style={{ display: pathname === path ? undefined : "none" }}
+            >
+              {component}
+            </div>
+          );
+        })}
       </main>
     </div>
   );
