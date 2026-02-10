@@ -1,0 +1,248 @@
+.devices-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header */
+.devices-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.devices-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.devices-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Buttons */
+.devices-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #1a1a2e;
+  color: #ffffff;
+  transition: background-color 0.15s;
+}
+
+.devices-btn:hover:not(:disabled) {
+  background-color: #2d2d5e;
+}
+
+.devices-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.devices-btn--secondary {
+  background-color: #4a4a6a;
+}
+
+.devices-btn--secondary:hover:not(:disabled) {
+  background-color: #5a5a7a;
+}
+
+/* Error banner */
+.devices-error {
+  padding: 10px 14px;
+  border-radius: 6px;
+  background-color: #fdecea;
+  color: #b71c1c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Empty state */
+.devices-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+}
+
+/* Card list */
+.devices-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Device card */
+.device-card {
+  padding: 14px 16px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.device-card:hover {
+  border-color: #1a1a2e;
+}
+
+.device-card--selected {
+  border-color: #1a1a2e;
+  box-shadow: 0 0 0 2px rgba(26, 26, 46, 0.15);
+}
+
+.device-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.device-card-model {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.device-card-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.device-card-badge[data-color="green"] {
+  background-color: #2e7d32;
+}
+
+.device-card-badge[data-color="orange"] {
+  background-color: #e65100;
+}
+
+.device-card-badge[data-color="red"] {
+  background-color: #c62828;
+}
+
+.device-card-badge[data-color="gray"] {
+  background-color: #757575;
+}
+
+.device-card-serial {
+  font-size: 12px;
+  color: #888;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+}
+
+.device-card-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #e65100;
+}
+
+/* Detail panel */
+.devices-detail-panel {
+  padding: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.devices-detail-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+}
+
+.devices-detail-loading {
+  color: #888;
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.devices-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.devices-detail-table td {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.devices-detail-table tr:last-child td {
+  border-bottom: none;
+}
+
+.devices-detail-label {
+  width: 120px;
+  color: #888;
+  font-weight: 500;
+}
+
+/* WiFi section */
+.devices-wifi-section {
+  padding: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.devices-wifi-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+}
+
+.devices-wifi-row {
+  display: flex;
+  gap: 8px;
+}
+
+.devices-wifi-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.devices-wifi-input:focus {
+  border-color: #1a1a2e;
+}
+
+.devices-wifi-input::placeholder {
+  color: #aaa;
+}
+
+.devices-wifi-result {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-size: 13px;
+}
+
+.devices-wifi-error {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #fdecea;
+  color: #b71c1c;
+  font-size: 13px;
+}
