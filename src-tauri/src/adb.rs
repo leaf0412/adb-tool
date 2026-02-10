@@ -192,18 +192,34 @@ fn parse_df_output(output: &str) -> (u64, u64) {
 // App installation / management
 // ---------------------------------------------------------------------------
 
-/// Install an APK with optional flags. Parses error codes from stdout.
+/// Install an APK with optional flags. Parses error codes from combined output.
+/// Uses combined stdout+stderr because `adb install` may output the result
+/// (Success/Failure) to either stream depending on adb version and device.
 pub async fn install_apk(
     app: &AppHandle,
     serial: &str,
     apk_path: &str,
     flags: &[&str],
 ) -> Result<InstallResult, String> {
-    let mut args: Vec<&str> = vec!["install"];
+    let mut args: Vec<&str> = vec!["-s", serial, "install"];
     args.extend_from_slice(flags);
     args.push(apk_path);
 
-    let raw_output = exec_device(app, serial, &args).await?;
+    let output = app
+        .shell()
+        .sidecar("adb")
+        .map_err(|e| format!("Failed to create sidecar: {}", e))?
+        .args(&args)
+        .output()
+        .await
+        .map_err(|e| format!("Failed to execute adb: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    // Merge both streams — adb install may write result to either one
+    let raw_output = format!("{}\n{}", stdout.trim(), stderr.trim())
+        .trim()
+        .to_string();
 
     if raw_output.contains("Success") {
         return Ok(InstallResult {
@@ -368,18 +384,43 @@ pub async fn launch_app(
 // Screenshot
 // ---------------------------------------------------------------------------
 
-/// Take a screenshot: screencap on device, pull to local, remove temp file.
+/// Take a screenshot: use `exec-out screencap -p` to capture raw PNG bytes
+/// and write directly to local file, avoiding intermediate device file.
 pub async fn screenshot(
     app: &AppHandle,
     serial: &str,
     local_path: &str,
 ) -> Result<String, String> {
-    let remote_temp = "/sdcard/screenshot_tmp.png";
+    let output = app
+        .shell()
+        .sidecar("adb")
+        .map_err(|e| format!("Failed to create sidecar: {}", e))?
+        .args(&["-s", serial, "exec-out", "screencap", "-p"])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to execute adb: {}", e))?;
 
-    exec_device(app, serial, &["shell", "screencap", "-p", remote_temp]).await?;
-    exec_device(app, serial, &["pull", remote_temp, local_path]).await?;
-    // Clean up remote temp file (ignore errors)
-    let _ = exec_device(app, serial, &["shell", "rm", remote_temp]).await;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("screencap failed: {}", stderr.trim()));
+    }
+
+    if output.stdout.is_empty() {
+        return Err("截图失败：screencap 返回空数据".to_string());
+    }
+
+    // Verify PNG signature (first 4 bytes: 0x89 P N G)
+    if output.stdout.len() < 8
+        || output.stdout[0] != 0x89
+        || output.stdout[1] != b'P'
+        || output.stdout[2] != b'N'
+        || output.stdout[3] != b'G'
+    {
+        return Err("截图失败：返回数据不是有效的 PNG 格式".to_string());
+    }
+
+    std::fs::write(local_path, &output.stdout)
+        .map_err(|e| format!("写入截图文件失败: {}", e))?;
 
     Ok(local_path.to_string())
 }
