@@ -15,6 +15,8 @@ pub struct OpLogEntry {
     pub detail: String,
     pub success: bool,
     pub error_message: Option<String>,
+    #[serde(default)]
+    pub command: Option<String>,
     pub raw_output: Option<String>,
 }
 

@@ -47,5 +47,6 @@ export interface OpLogEntry {
   detail: string;
   success: boolean;
   error_message: string | null;
+  command: string | null;
   raw_output: string | null;
 }

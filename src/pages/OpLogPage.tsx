@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useRefreshOnActivate } from "../hooks/useRefreshOnActivate";
 import type { OpLogEntry } from "../types";
 import "./OpLogPage.css";
 
@@ -39,6 +40,8 @@ function OpLogPage() {
   useEffect(() => {
     loadLogs();
   }, [loadLogs]);
+
+  useRefreshOnActivate("/oplog", loadLogs);
 
   // Extract unique devices from ALL logs so the filter always shows every device
   const uniqueDevices = useMemo(() => {
@@ -141,6 +144,13 @@ function OpLogPage() {
               </div>
 
               <div className="oplog-entry-detail">{log.detail}</div>
+
+              {log.command && (
+                <div className="oplog-entry-command">
+                  <span className="oplog-entry-command-label">命令</span>
+                  <code className="oplog-entry-command-text">{log.command}</code>
+                </div>
+              )}
 
               {!log.success && log.error_message && (
                 <div className="oplog-entry-error">{log.error_message}</div>

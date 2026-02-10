@@ -36,6 +36,11 @@ async fn install_apk(
     let flag_refs: Vec<&str> = flags.iter().map(|s| s.as_str()).collect();
     let result = adb::install_apk(&app, &serial, &apk_path, &flag_refs).await?;
     let file_name = apk_path.rsplit('/').next().or_else(|| apk_path.rsplit('\\').next()).unwrap_or(&apk_path);
+    let cmd = if flags.is_empty() {
+        format!("adb -s {} install {}", serial, file_name)
+    } else {
+        format!("adb -s {} install {} {}", serial, flags.join(" "), file_name)
+    };
     op_log::add_entry(&state, op_log::OpLogEntry {
         timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
         op_type: "install".to_string(),
@@ -43,6 +48,7 @@ async fn install_apk(
         detail: format!("安装 {}", file_name),
         success: result.success,
         error_message: result.error_message_cn.clone(),
+        command: Some(cmd),
         raw_output: Some(result.raw_output.clone()),
     });
     Ok(result)
@@ -56,9 +62,9 @@ async fn uninstall_app(
     package_name: String,
 ) -> Result<String, String> {
     let result = adb::uninstall_app(&app, &serial, &package_name).await;
-    let (success, error_msg) = match &result {
-        Ok(_) => (true, None),
-        Err(e) => (false, Some(e.clone())),
+    let (success, error_msg, raw) = match &result {
+        Ok(output) => (true, None, output.clone()),
+        Err(e) => (false, Some(e.clone()), e.clone()),
     };
     op_log::add_entry(&state, op_log::OpLogEntry {
         timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
@@ -67,7 +73,8 @@ async fn uninstall_app(
         detail: format!("卸载 {}", package_name),
         success,
         error_message: error_msg,
-        raw_output: None,
+        command: Some(format!("adb -s {} uninstall {}", serial, package_name)),
+        raw_output: Some(raw),
     });
     result
 }
@@ -116,9 +123,9 @@ async fn take_screenshot(
     local_path: String,
 ) -> Result<String, String> {
     let result = adb::screenshot(&app, &serial, &local_path).await;
-    let (success, error_msg) = match &result {
-        Ok(_) => (true, None),
-        Err(e) => (false, Some(e.clone())),
+    let (success, error_msg, raw) = match &result {
+        Ok(path) => (true, None, format!("保存至 {}", path)),
+        Err(e) => (false, Some(e.clone()), e.clone()),
     };
     op_log::add_entry(&state, op_log::OpLogEntry {
         timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
@@ -127,7 +134,8 @@ async fn take_screenshot(
         detail: format!("截图 → {}", local_path),
         success,
         error_message: error_msg,
-        raw_output: None,
+        command: Some(format!("adb -s {} exec-out screencap -p > {}", serial, local_path)),
+        raw_output: Some(raw),
     });
     result
 }
@@ -142,9 +150,9 @@ async fn push_file(
 ) -> Result<String, String> {
     let result = adb::push_file(&app, &serial, &local_path, &remote_path).await;
     let file_name = local_path.rsplit('/').next().or_else(|| local_path.rsplit('\\').next()).unwrap_or(&local_path);
-    let (success, error_msg) = match &result {
-        Ok(_) => (true, None),
-        Err(e) => (false, Some(e.clone())),
+    let (success, error_msg, raw) = match &result {
+        Ok(output) => (true, None, output.clone()),
+        Err(e) => (false, Some(e.clone()), e.clone()),
     };
     op_log::add_entry(&state, op_log::OpLogEntry {
         timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
@@ -153,7 +161,8 @@ async fn push_file(
         detail: format!("上传 {} → {}", file_name, remote_path),
         success,
         error_message: error_msg,
-        raw_output: None,
+        command: Some(format!("adb -s {} push {} {}", serial, local_path, remote_path)),
+        raw_output: Some(raw),
     });
     result
 }
@@ -168,9 +177,9 @@ async fn pull_file(
 ) -> Result<String, String> {
     let result = adb::pull_file(&app, &serial, &remote_path, &local_path).await;
     let file_name = remote_path.rsplit('/').next().unwrap_or(&remote_path);
-    let (success, error_msg) = match &result {
-        Ok(_) => (true, None),
-        Err(e) => (false, Some(e.clone())),
+    let (success, error_msg, raw) = match &result {
+        Ok(output) => (true, None, output.clone()),
+        Err(e) => (false, Some(e.clone()), e.clone()),
     };
     op_log::add_entry(&state, op_log::OpLogEntry {
         timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
@@ -179,7 +188,8 @@ async fn pull_file(
         detail: format!("下载 {} → {}", file_name, local_path),
         success,
         error_message: error_msg,
-        raw_output: None,
+        command: Some(format!("adb -s {} pull {} {}", serial, remote_path, local_path)),
+        raw_output: Some(raw),
     });
     result
 }
