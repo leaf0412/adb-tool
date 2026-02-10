@@ -221,3 +221,37 @@
   gap: 6px;
   flex-shrink: 0;
 }
+
+/* Confirm dialog */
+.apps-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.apps-confirm-dialog {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 24px;
+  min-width: 320px;
+  max-width: 440px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.apps-confirm-message {
+  font-size: 14px;
+  color: #1a1a2e;
+  line-height: 1.6;
+  margin: 0 0 20px;
+  word-break: break-all;
+}
+
+.apps-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

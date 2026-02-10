@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useDevices } from "../hooks/useDevices";
+import { useRefreshOnActivate } from "../hooks/useRefreshOnActivate";
 import type { InstalledApp } from "../types";
 import "./AppsPage.css";
 
@@ -16,6 +17,10 @@ function AppsPage() {
   const [showSystem, setShowSystem] = useState(false);
   const [selectedPkgs, setSelectedPkgs] = useState<Set<string>>(new Set());
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [dialog, setDialog] = useState<{
+    message: string;
+    onConfirm?: () => void;
+  } | null>(null);
 
   // Auto-select first connected device
   useEffect(() => {
@@ -58,6 +63,8 @@ function AppsPage() {
     loadApps();
   }, [loadApps]);
 
+  useRefreshOnActivate("/apps", loadApps);
+
   // Filter by search text
   const filteredApps = apps.filter((app) =>
     app.package_name.toLowerCase().includes(search.toLowerCase())
@@ -83,7 +90,7 @@ function AppsPage() {
       try {
         await invoke("launch_app", { serial: selectedSerial, packageName });
       } catch (err) {
-        alert(String(err));
+        setDialog({ message: String(err) });
       } finally {
         setActionLoading(null);
       }
@@ -97,7 +104,7 @@ function AppsPage() {
       try {
         await invoke("force_stop", { serial: selectedSerial, packageName });
       } catch (err) {
-        alert(String(err));
+        setDialog({ message: String(err) });
       } finally {
         setActionLoading(null);
       }
@@ -111,7 +118,7 @@ function AppsPage() {
       try {
         await invoke("clear_app_data", { serial: selectedSerial, packageName });
       } catch (err) {
-        alert(String(err));
+        setDialog({ message: String(err) });
       } finally {
         setActionLoading(null);
       }
@@ -120,54 +127,57 @@ function AppsPage() {
   );
 
   const handleUninstall = useCallback(
-    async (packageName: string) => {
-      const confirmed = window.confirm(
-        `确认卸载 ${packageName} ？此操作不可撤销。`
-      );
-      if (!confirmed) return;
-      setActionLoading(`uninstall-${packageName}`);
-      try {
-        await invoke("uninstall_app", { serial: selectedSerial, packageName });
-        setApps((prev) => prev.filter((a) => a.package_name !== packageName));
-        setSelectedPkgs((prev) => {
-          const next = new Set(prev);
-          next.delete(packageName);
-          return next;
-        });
-      } catch (err) {
-        alert(String(err));
-      } finally {
-        setActionLoading(null);
-      }
+    (packageName: string) => {
+      setDialog({
+        message: `确认卸载 ${packageName} ？此操作不可撤销。`,
+        onConfirm: async () => {
+          setDialog(null);
+          setActionLoading(`uninstall-${packageName}`);
+          try {
+            await invoke("uninstall_app", { serial: selectedSerial, packageName });
+            setApps((prev) => prev.filter((a) => a.package_name !== packageName));
+            setSelectedPkgs((prev) => {
+              const next = new Set(prev);
+              next.delete(packageName);
+              return next;
+            });
+          } catch (err) {
+            setDialog({ message: String(err) });
+          } finally {
+            setActionLoading(null);
+          }
+        },
+      });
     },
     [selectedSerial]
   );
 
   // Batch uninstall
-  const handleBatchUninstall = useCallback(async () => {
+  const handleBatchUninstall = useCallback(() => {
     if (selectedPkgs.size === 0) return;
-    const confirmed = window.confirm(
-      `确认批量卸载选中的 ${selectedPkgs.size} 个应用？此操作不可撤销。`
-    );
-    if (!confirmed) return;
-    setActionLoading("batch-uninstall");
-    const failed: string[] = [];
-    for (const pkg of selectedPkgs) {
-      try {
-        await invoke("uninstall_app", {
-          serial: selectedSerial,
-          packageName: pkg,
-        });
-      } catch {
-        failed.push(pkg);
-      }
-    }
-    // Reload the list after batch operation
-    await loadApps();
-    setActionLoading(null);
-    if (failed.length > 0) {
-      alert(`以下应用卸载失败:\n${failed.join("\n")}`);
-    }
+    setDialog({
+      message: `确认批量卸载选中的 ${selectedPkgs.size} 个应用？此操作不可撤销。`,
+      onConfirm: async () => {
+        setDialog(null);
+        setActionLoading("batch-uninstall");
+        const failed: string[] = [];
+        for (const pkg of selectedPkgs) {
+          try {
+            await invoke("uninstall_app", {
+              serial: selectedSerial,
+              packageName: pkg,
+            });
+          } catch {
+            failed.push(pkg);
+          }
+        }
+        await loadApps();
+        setActionLoading(null);
+        if (failed.length > 0) {
+          setDialog({ message: `以下应用卸载失败:\n${failed.join("\n")}` });
+        }
+      },
+    });
   }, [selectedPkgs, selectedSerial, loadApps]);
 
   return (
@@ -315,6 +325,40 @@ function AppsPage() {
       {apps.length > 0 && filteredApps.length === 0 && search && (
         <div className="apps-empty">
           没有匹配 &quot;{search}&quot; 的应用
+        </div>
+      )}
+
+      {/* Dialog */}
+      {dialog && (
+        <div className="apps-confirm-overlay" onClick={() => setDialog(null)}>
+          <div className="apps-confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <p className="apps-confirm-message">{dialog.message}</p>
+            <div className="apps-confirm-actions">
+              {dialog.onConfirm ? (
+                <>
+                  <button
+                    className="apps-btn apps-btn--secondary"
+                    onClick={() => setDialog(null)}
+                  >
+                    取消
+                  </button>
+                  <button
+                    className="apps-btn apps-btn--danger"
+                    onClick={dialog.onConfirm}
+                  >
+                    确认卸载
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="apps-btn"
+                  onClick={() => setDialog(null)}
+                >
+                  确定
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
