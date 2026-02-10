@@ -29,3 +29,10 @@ _docs/plans/
 
 # Env files
 .env*
+
+# ADB sidecar binaries (downloaded in CI)
+src-tauri/adb-*
+src-tauri/AdbWin*.dll
+
+# App icon source (generated icons are in src-tauri/icons/)
+app-icon.svg
