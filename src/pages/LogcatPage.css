@@ -1,0 +1,268 @@
+.logcat-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+/* Header */
+.logcat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logcat-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+/* Controls bar */
+.logcat-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.logcat-select {
+  padding: 6px 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  background-color: #ffffff;
+  color: #1a1a2e;
+  outline: none;
+  cursor: pointer;
+  min-width: 140px;
+  transition: border-color 0.15s;
+}
+
+.logcat-select:focus {
+  border-color: #1a1a2e;
+}
+
+.logcat-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Buttons */
+.logcat-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #1a1a2e;
+  color: #ffffff;
+  transition: background-color 0.15s;
+  white-space: nowrap;
+}
+
+.logcat-btn:hover:not(:disabled) {
+  background-color: #2d2d5e;
+}
+
+.logcat-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.logcat-btn--secondary {
+  background-color: #4a4a6a;
+}
+
+.logcat-btn--secondary:hover:not(:disabled) {
+  background-color: #5a5a7a;
+}
+
+.logcat-btn--danger {
+  background-color: #c62828;
+}
+
+.logcat-btn--danger:hover:not(:disabled) {
+  background-color: #b71c1c;
+}
+
+.logcat-btn--active {
+  background-color: #2e7d32;
+}
+
+.logcat-btn--active:hover:not(:disabled) {
+  background-color: #1b5e20;
+}
+
+/* Filters bar */
+.logcat-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.logcat-filter-input {
+  padding: 5px 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  min-width: 120px;
+  transition: border-color 0.15s;
+}
+
+.logcat-filter-input:focus {
+  border-color: #1a1a2e;
+}
+
+.logcat-filter-input::placeholder {
+  color: #aaa;
+}
+
+.logcat-line-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+}
+
+/* Log container */
+.logcat-container {
+  flex: 1;
+  min-height: 300px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 8px 0;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.logcat-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #666;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Log line */
+.logcat-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 1px 12px 1px 0;
+  border-left: 3px solid transparent;
+  transition: background-color 0.05s;
+}
+
+.logcat-line:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Level-specific left borders */
+.logcat-line[data-level="V"] {
+  border-left-color: #64b5f6;
+}
+
+.logcat-line[data-level="D"] {
+  border-left-color: #81c784;
+}
+
+.logcat-line[data-level="I"] {
+  border-left-color: #fff176;
+}
+
+.logcat-line[data-level="W"] {
+  border-left-color: #ffb74d;
+}
+
+.logcat-line[data-level="E"] {
+  border-left-color: #ef5350;
+}
+
+.logcat-line[data-level="F"] {
+  border-left-color: #ce93d8;
+}
+
+.logcat-timestamp {
+  color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-left: 8px;
+}
+
+/* Level badge */
+.logcat-level {
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+  font-weight: 700;
+  border-radius: 3px;
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+
+.logcat-level[data-level="V"] {
+  color: #64b5f6;
+}
+
+.logcat-level[data-level="D"] {
+  color: #81c784;
+}
+
+.logcat-level[data-level="I"] {
+  color: #fff176;
+}
+
+.logcat-level[data-level="W"] {
+  color: #ffb74d;
+}
+
+.logcat-level[data-level="E"] {
+  color: #ef5350;
+}
+
+.logcat-level[data-level="F"] {
+  color: #ce93d8;
+}
+
+.logcat-tag {
+  color: #4fc3f7;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logcat-message {
+  color: #d4d4d4;
+  word-break: break-all;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Error banner */
+.logcat-error {
+  padding: 10px 14px;
+  border-radius: 6px;
+  background-color: #fdecea;
+  color: #b71c1c;
+  font-size: 13px;
+  line-height: 1.5;
+}
