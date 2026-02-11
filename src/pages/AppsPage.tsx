@@ -15,12 +15,8 @@ function AppsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [showSystem, setShowSystem] = useState(false);
-  const [selectedPkgs, setSelectedPkgs] = useState<Set<string>>(new Set());
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<{
-    message: string;
-    onConfirm?: () => void;
-  } | null>(null);
+  const [dialog, setDialog] = useState<{ message: string } | null>(null);
 
   // Auto-select first connected device
   useEffect(() => {
@@ -44,7 +40,6 @@ function AppsPage() {
     }
     setLoading(true);
     setError(null);
-    setSelectedPkgs(new Set());
     try {
       const list = await bridge().getPackages(selectedSerial, showSystem);
       setApps(list);
@@ -66,19 +61,6 @@ function AppsPage() {
   const filteredApps = apps.filter((app) =>
     app.package_name.toLowerCase().includes(search.toLowerCase())
   );
-
-  // Toggle single selection
-  const toggleSelect = useCallback((pkg: string) => {
-    setSelectedPkgs((prev) => {
-      const next = new Set(prev);
-      if (next.has(pkg)) {
-        next.delete(pkg);
-      } else {
-        next.add(pkg);
-      }
-      return next;
-    });
-  }, []);
 
   // Single-app actions
   const handleLaunch = useCallback(
@@ -122,57 +104,6 @@ function AppsPage() {
     },
     [selectedSerial]
   );
-
-  const handleUninstall = useCallback(
-    (packageName: string) => {
-      setDialog({
-        message: `确认卸载 ${packageName} ？此操作不可撤销。`,
-        onConfirm: async () => {
-          setDialog(null);
-          setActionLoading(`uninstall-${packageName}`);
-          try {
-            await bridge().uninstallApp(selectedSerial, packageName);
-            setApps((prev) => prev.filter((a) => a.package_name !== packageName));
-            setSelectedPkgs((prev) => {
-              const next = new Set(prev);
-              next.delete(packageName);
-              return next;
-            });
-          } catch (err) {
-            setDialog({ message: String(err) });
-          } finally {
-            setActionLoading(null);
-          }
-        },
-      });
-    },
-    [selectedSerial]
-  );
-
-  // Batch uninstall
-  const handleBatchUninstall = useCallback(() => {
-    if (selectedPkgs.size === 0) return;
-    setDialog({
-      message: `确认批量卸载选中的 ${selectedPkgs.size} 个应用？此操作不可撤销。`,
-      onConfirm: async () => {
-        setDialog(null);
-        setActionLoading("batch-uninstall");
-        const failed: string[] = [];
-        for (const pkg of selectedPkgs) {
-          try {
-            await bridge().uninstallApp(selectedSerial, pkg);
-          } catch {
-            failed.push(pkg);
-          }
-        }
-        await loadApps();
-        setActionLoading(null);
-        if (failed.length > 0) {
-          setDialog({ message: `以下应用卸载失败:\n${failed.join("\n")}` });
-        }
-      },
-    });
-  }, [selectedPkgs, selectedSerial, loadApps]);
 
   return (
     <div className="apps-page">
@@ -223,18 +154,6 @@ function AppsPage() {
         >
           {loading ? "加载中..." : "刷新"}
         </button>
-
-        <button
-          className="apps-btn apps-btn--danger"
-          onClick={handleBatchUninstall}
-          disabled={
-            selectedPkgs.size === 0 || actionLoading === "batch-uninstall"
-          }
-        >
-          {actionLoading === "batch-uninstall"
-            ? "卸载中..."
-            : `批量卸载${selectedPkgs.size > 0 ? ` (${selectedPkgs.size})` : ""}`}
-        </button>
       </div>
 
       {/* Error */}
@@ -254,23 +173,9 @@ function AppsPage() {
         <div className="apps-list">
           {filteredApps.map((app) => {
             const pkg = app.package_name;
-            const isSelected = selectedPkgs.has(pkg);
             const isLoading = actionLoading?.endsWith(pkg) ?? false;
             return (
-              <div
-                key={pkg}
-                className={
-                  "apps-row" + (isSelected ? " apps-row--selected" : "")
-                }
-              >
-                <label className="apps-row-check">
-                  <input
-                    type="checkbox"
-                    className="apps-row-checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleSelect(pkg)}
-                  />
-                </label>
+              <div key={pkg} className="apps-row">
                 <div className="apps-row-info">
                   <span className="apps-row-pkg">{pkg}</span>
                   {app.version_name && (
@@ -301,13 +206,6 @@ function AppsPage() {
                   >
                     清数据
                   </button>
-                  <button
-                    className="apps-btn apps-btn--small apps-btn--danger"
-                    onClick={() => handleUninstall(pkg)}
-                    disabled={isLoading}
-                  >
-                    卸载
-                  </button>
                 </div>
               </div>
             );
@@ -328,29 +226,12 @@ function AppsPage() {
           <div className="apps-confirm-dialog" onClick={(e) => e.stopPropagation()}>
             <p className="apps-confirm-message">{dialog.message}</p>
             <div className="apps-confirm-actions">
-              {dialog.onConfirm ? (
-                <>
-                  <button
-                    className="apps-btn apps-btn--secondary"
-                    onClick={() => setDialog(null)}
-                  >
-                    取消
-                  </button>
-                  <button
-                    className="apps-btn apps-btn--danger"
-                    onClick={dialog.onConfirm}
-                  >
-                    确认卸载
-                  </button>
-                </>
-              ) : (
-                <button
-                  className="apps-btn"
-                  onClick={() => setDialog(null)}
-                >
-                  确定
-                </button>
-              )}
+              <button
+                className="apps-btn"
+                onClick={() => setDialog(null)}
+              >
+                确定
+              </button>
             </div>
           </div>
         </div>
