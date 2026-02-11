@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { bridge } from "../bridge";
 import { useRefreshOnActivate } from "../hooks/useRefreshOnActivate";
 import type { OpLogEntry } from "../types";
 import "./OpLogPage.css";
@@ -21,14 +21,14 @@ function OpLogPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [clearing, setClearing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const loadLogs = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const logs = await invoke<OpLogEntry[]>("get_op_logs", {
-        opType: null,
-        device: null,
-      });
+      const logs = await bridge().getOpLogs(null, null);
       setAllLogs(logs.reverse());
     } catch (err) {
       setError(String(err));
@@ -42,6 +42,20 @@ function OpLogPage() {
   }, [loadLogs]);
 
   useRefreshOnActivate("/oplog", loadLogs);
+
+  const clearLogs = useCallback(async () => {
+    setShowConfirm(false);
+    setClearing(true);
+    setError(null);
+    try {
+      await bridge().clearOpLogs();
+      setAllLogs([]);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setClearing(false);
+    }
+  }, []);
 
   // Extract unique devices from ALL logs so the filter always shows every device
   const uniqueDevices = useMemo(() => {
@@ -102,6 +116,13 @@ function OpLogPage() {
           disabled={loading}
         >
           {loading ? "刷新中..." : "刷新"}
+        </button>
+        <button
+          className="oplog-btn oplog-btn--danger"
+          onClick={() => setShowConfirm(true)}
+          disabled={clearing || allLogs.length === 0}
+        >
+          {clearing ? "清除中..." : "清除"}
         </button>
       </div>
 
@@ -166,6 +187,29 @@ function OpLogPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Confirm dialog */}
+      {showConfirm && (
+        <div className="oplog-confirm-overlay" onClick={() => setShowConfirm(false)}>
+          <div className="oplog-confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <p className="oplog-confirm-message">确定要清除所有操作记录吗？此操作不可恢复。</p>
+            <div className="oplog-confirm-actions">
+              <button
+                className="oplog-btn"
+                onClick={() => setShowConfirm(false)}
+              >
+                取消
+              </button>
+              <button
+                className="oplog-btn oplog-btn--danger"
+                onClick={clearLogs}
+              >
+                确认清除
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

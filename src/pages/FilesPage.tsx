@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { invoke, convertFileSrc } from "@tauri-apps/api/core";
-import { open, save } from "@tauri-apps/plugin-dialog";
+import { bridge } from "../bridge";
 import { useDevices } from "../hooks/useDevices";
 import "./FilesPage.css";
 
@@ -65,10 +64,7 @@ function FilesPage() {
       setLoading(true);
       setStatus("");
       try {
-        const lines = await invoke<string[]>("list_remote_files", {
-          serial: selectedDevice,
-          remoteDir: dir,
-        });
+        const lines = await bridge().listRemoteFiles(selectedDevice, dir);
         const entries: FileEntry[] = [];
         for (const line of lines) {
           const entry = parseLsLine(line);
@@ -128,17 +124,14 @@ function FilesPage() {
 
   const handleScreenshot = useCallback(async () => {
     if (!selectedDevice) return;
-    const savePath = await save({
+    const savePath = await bridge().showSaveDialog({
       defaultPath: `screenshot_${Date.now()}.png`,
       filters: [{ name: "Image", extensions: ["png"] }],
     });
     if (!savePath) return;
     setStatus("正在截图...");
     try {
-      await invoke("take_screenshot", {
-        serial: selectedDevice,
-        localPath: savePath,
-      });
+      await bridge().takeScreenshot(selectedDevice, savePath);
       setScreenshotPath(savePath);
       setStatus("截图已保存: " + savePath);
     } catch (err) {
@@ -148,17 +141,13 @@ function FilesPage() {
 
   const handleUpload = useCallback(async () => {
     if (!selectedDevice) return;
-    const file = await open();
-    if (typeof file !== "string") return;
+    const file = await bridge().showOpenDialog();
+    if (!file) return;
     setStatus("正在上传...");
     try {
       const fileName =
         file.split("/").pop() || file.split("\\").pop() || "file";
-      await invoke("push_file", {
-        serial: selectedDevice,
-        localPath: file,
-        remotePath: remotePath + fileName,
-      });
+      await bridge().pushFile(selectedDevice, file, remotePath + fileName);
       setStatus("上传成功: " + fileName);
       loadFiles();
     } catch (err) {
@@ -169,15 +158,11 @@ function FilesPage() {
   const handleDownload = useCallback(
     async (fileName: string) => {
       if (!selectedDevice) return;
-      const savePath = await save({ defaultPath: fileName });
+      const savePath = await bridge().showSaveDialog({ defaultPath: fileName });
       if (!savePath) return;
       setStatus("正在下载...");
       try {
-        await invoke("pull_file", {
-          serial: selectedDevice,
-          remotePath: remotePath + fileName,
-          localPath: savePath,
-        });
+        await bridge().pullFile(selectedDevice, remotePath + fileName, savePath);
         setStatus("下载成功: " + savePath);
       } catch (err) {
         setStatus("下载失败: " + String(err));
@@ -329,7 +314,7 @@ function FilesPage() {
           <h3 className="files-section-title">截图预览</h3>
           <div className="files-screenshot-preview">
             <img
-              src={convertFileSrc(screenshotPath)}
+              src={bridge().convertFileSrc(screenshotPath)}
               alt="screenshot"
               className="files-screenshot-img"
               onError={(e) => {

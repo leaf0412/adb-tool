@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { bridge } from "../bridge";
 import { useDevices } from "../hooks/useDevices";
 import { useRefreshOnActivate } from "../hooks/useRefreshOnActivate";
 import type { InstalledApp } from "../types";
@@ -46,10 +46,7 @@ function AppsPage() {
     setError(null);
     setSelectedPkgs(new Set());
     try {
-      const list = await invoke<InstalledApp[]>("get_packages", {
-        serial: selectedSerial,
-        includeSystem: showSystem,
-      });
+      const list = await bridge().getPackages(selectedSerial, showSystem);
       setApps(list);
     } catch (err) {
       setError(String(err));
@@ -88,7 +85,7 @@ function AppsPage() {
     async (packageName: string) => {
       setActionLoading(`launch-${packageName}`);
       try {
-        await invoke("launch_app", { serial: selectedSerial, packageName });
+        await bridge().launchApp(selectedSerial, packageName);
       } catch (err) {
         setDialog({ message: String(err) });
       } finally {
@@ -102,7 +99,7 @@ function AppsPage() {
     async (packageName: string) => {
       setActionLoading(`stop-${packageName}`);
       try {
-        await invoke("force_stop", { serial: selectedSerial, packageName });
+        await bridge().forceStop(selectedSerial, packageName);
       } catch (err) {
         setDialog({ message: String(err) });
       } finally {
@@ -116,7 +113,7 @@ function AppsPage() {
     async (packageName: string) => {
       setActionLoading(`clear-${packageName}`);
       try {
-        await invoke("clear_app_data", { serial: selectedSerial, packageName });
+        await bridge().clearAppData(selectedSerial, packageName);
       } catch (err) {
         setDialog({ message: String(err) });
       } finally {
@@ -134,7 +131,7 @@ function AppsPage() {
           setDialog(null);
           setActionLoading(`uninstall-${packageName}`);
           try {
-            await invoke("uninstall_app", { serial: selectedSerial, packageName });
+            await bridge().uninstallApp(selectedSerial, packageName);
             setApps((prev) => prev.filter((a) => a.package_name !== packageName));
             setSelectedPkgs((prev) => {
               const next = new Set(prev);
@@ -163,10 +160,7 @@ function AppsPage() {
         const failed: string[] = [];
         for (const pkg of selectedPkgs) {
           try {
-            await invoke("uninstall_app", {
-              serial: selectedSerial,
-              packageName: pkg,
-            });
+            await bridge().uninstallApp(selectedSerial, pkg);
           } catch {
             failed.push(pkg);
           }

@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { bridge } from "../bridge";
 import { useDevices } from "../hooks/useDevices";
 import type { InstallResult } from "../types";
 import "./InstallPage.css";
@@ -41,21 +39,24 @@ function InstallPage() {
   const [results, setResults] = useState<DeviceResult[]>([]);
   const [fixingSerial, setFixingSerial] = useState<string | null>(null);
 
-  // Drag-drop via Tauri API
+  // Drag-drop via bridge
   useEffect(() => {
-    const unlisten = getCurrentWebviewWindow().onDragDropEvent((event) => {
-      if (event.payload.type === "drop") {
-        const apk = event.payload.paths.find((p: string) =>
-          p.endsWith(".apk")
-        );
-        if (apk) setApkPath(apk);
-        setDragOver(false);
-      }
-      if (event.payload.type === "over") setDragOver(true);
-      if (event.payload.type === "leave") setDragOver(false);
-    });
+    let unlisten: (() => void) | null = null;
+    bridge()
+      .onDragDrop((payload) => {
+        if (payload.type === "drop") {
+          const apk = payload.paths.find((p) => p.endsWith(".apk"));
+          if (apk) setApkPath(apk);
+          setDragOver(false);
+        }
+        if (payload.type === "over") setDragOver(true);
+        if (payload.type === "leave") setDragOver(false);
+      })
+      .then((fn) => {
+        unlisten = fn;
+      });
     return () => {
-      unlisten.then((fn) => fn());
+      unlisten?.();
     };
   }, []);
 
@@ -73,10 +74,10 @@ function InstallPage() {
   }, [connectedDevices]);
 
   const handleFilePick = useCallback(async () => {
-    const file = await open({
+    const file = await bridge().showOpenDialog({
       filters: [{ name: "APK", extensions: ["apk"] }],
     });
-    if (typeof file === "string") setApkPath(file);
+    if (file) setApkPath(file);
   }, []);
 
   const handleClear = useCallback(() => {
@@ -116,11 +117,7 @@ function InstallPage() {
     for (const serial of selectedSerials) {
       const device = connectedDevices.find((d) => d.serial === serial);
       try {
-        const result = await invoke<InstallResult>("install_apk", {
-          serial,
-          apkPath,
-          flags: ["-r"],
-        });
+        const result = await bridge().installApk(serial, apkPath, ["-r"]);
         deviceResults.push({
           serial,
           model: device?.model || serial,
@@ -150,11 +147,7 @@ function InstallPage() {
       const device = connectedDevices.find((d) => d.serial === serial);
 
       try {
-        const result = await invoke<InstallResult>("install_apk", {
-          serial,
-          apkPath,
-          flags,
-        });
+        const result = await bridge().installApk(serial, apkPath, flags);
         setResults((prev) =>
           prev.map((r) =>
             r.serial === serial

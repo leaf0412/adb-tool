@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { bridge } from "../bridge";
 import type { AdbDevice, DeviceDetail } from "../types";
 
 const REFRESH_INTERVAL = 3000;
@@ -11,7 +11,7 @@ export function useDevices() {
 
   const refresh = useCallback(async () => {
     try {
-      const list = await invoke<AdbDevice[]>("get_devices");
+      const list = await bridge().getDevices();
       setDevices(list);
       setError(null);
     } catch (err) {
@@ -31,14 +31,14 @@ export function useDevices() {
 }
 
 export async function getDeviceDetail(serial: string): Promise<DeviceDetail> {
-  return invoke<DeviceDetail>("get_device_detail", { serial });
+  return bridge().getDeviceDetail(serial);
 }
 
 export async function connectWifi(address: string): Promise<string> {
-  return invoke<string>("connect_wifi", { address });
+  return bridge().connectWifi(address);
 }
 
 export async function restartServer(): Promise<void> {
-  await invoke("kill_server");
-  await invoke("start_server");
+  await bridge().killServer();
+  await bridge().startServer();
 }

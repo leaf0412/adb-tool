@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
-import type { UnlistenFn } from "@tauri-apps/api/event";
+import { bridge } from "../bridge";
+import type { UnlistenFn } from "../bridge";
 import { useDevices } from "../hooks/useDevices";
 import type { LogcatLine } from "../types";
 import "./LogcatPage.css";
@@ -90,27 +89,21 @@ function LogcatPage() {
 
     const setup = async () => {
       try {
-        await invoke("start_logcat", { serial: selectedDevice });
+        await bridge().startLogcat(selectedDevice);
 
         if (cancelled) {
-          // Component unmounted or device changed before we finished setup
-          await invoke("stop_logcat", { serial: selectedDevice }).catch(
-            () => {}
-          );
+          await bridge().stopLogcat(selectedDevice).catch(() => {});
           return;
         }
 
-        unlisten = await listen<LogcatLine>(
-          `logcat-line-${selectedDevice}`,
-          (event) => {
-            if (!pausedRef.current) {
-              setLines((prev) => {
-                const next = [...prev, event.payload];
-                return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
-              });
-            }
+        unlisten = await bridge().onLogcatLine(selectedDevice, (line) => {
+          if (!pausedRef.current) {
+            setLines((prev) => {
+              const next = [...prev, line];
+              return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
+            });
           }
-        );
+        });
       } catch (err) {
         if (!cancelled) {
           setError(String(err));
@@ -126,7 +119,7 @@ function LogcatPage() {
       if (unlisten) {
         unlisten();
       }
-      invoke("stop_logcat", { serial: selectedDevice }).catch(() => {});
+      bridge().stopLogcat(selectedDevice).catch(() => {});
     };
   }, [streaming, selectedDevice]);
 
