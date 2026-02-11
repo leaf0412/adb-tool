@@ -1,0 +1,38 @@
+appId: com.adb-tool.electron
+productName: ADB Tool
+directories:
+  buildResources: build
+  output: release
+files:
+  - dist-electron/**/*
+extraResources:
+  - from: adb-bin/
+    to: adb-bin/
+    filter:
+      - "**/*"
+mac:
+  target:
+    - dmg
+    - zip
+  artifactName: ${productName}-Electron-${version}-mac.${ext}
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+win:
+  target:
+    - nsis
+  artifactName: ${productName}-Electron-${version}-win-setup.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+linux:
+  target:
+    - AppImage
+    - deb
+  artifactName: ${productName}-Electron-${version}-linux.${ext}
+  category: Utility

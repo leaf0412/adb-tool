@@ -34,5 +34,10 @@ _docs/plans/
 src-tauri/adb-*
 src-tauri/AdbWin*.dll
 
+# Electron build output
+dist-electron/
+release/
+adb-bin/
+
 # App icon source (generated icons are in src-tauri/icons/)
 app-icon.svg
