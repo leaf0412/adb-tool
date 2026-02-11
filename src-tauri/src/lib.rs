@@ -1,4 +1,5 @@
 mod adb;
+mod apk_parser;
 mod error_codes;
 mod logcat;
 mod op_log;
@@ -33,6 +34,11 @@ async fn install_apk(
     apk_path: String,
     flags: Vec<String>,
 ) -> Result<adb::InstallResult, String> {
+    // Uninstall existing app before install to avoid signature conflicts
+    if let Ok(package_name) = apk_parser::extract_package_name(&apk_path) {
+        let _ = adb::uninstall_app(&app, &serial, &package_name).await;
+    }
+
     let flag_refs: Vec<&str> = flags.iter().map(|s| s.as_str()).collect();
     let result = adb::install_apk(&app, &serial, &apk_path, &flag_refs).await?;
     let file_name = apk_path.rsplit('/').next().or_else(|| apk_path.rsplit('\\').next()).unwrap_or(&apk_path);

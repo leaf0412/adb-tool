@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import { join } from "node:path";
 import * as adb from "./adb";
+import { extractPackageName } from "./apk-parser";
 import * as opLog from "./op-log";
 import * as logcat from "./logcat";
 import type { OpLogEntry } from "../src/types";
@@ -96,10 +97,16 @@ function registerIpcHandlers(): void {
     },
   );
 
-  // Install APK with op-log
+  // Install APK with op-log (uninstall existing app first)
   ipcMain.handle(
     "install-apk",
     async (_e, serial: string, apkPath: string, flags: string[]) => {
+      // Uninstall existing app before install to avoid signature conflicts
+      const packageName = extractPackageName(apkPath);
+      if (packageName) {
+        try { await adb.uninstallApp(serial, packageName); } catch { /* ignore */ }
+      }
+
       const result = await adb.installApk(serial, apkPath, flags);
       const fileName =
         apkPath.split("/").pop() || apkPath.split("\\").pop() || apkPath;
