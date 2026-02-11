@@ -14,7 +14,7 @@ const STATE_MAP: Record<string, StateInfo> = {
   unauthorized: {
     label: "未授权",
     color: "orange",
-    hint: "请在手机上点击「允许 USB 调试」",
+    hint: "请在设备上确认「允许 USB 调试」",
   },
   offline: {
     label: "离线",

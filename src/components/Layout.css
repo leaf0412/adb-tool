@@ -56,3 +56,33 @@
   padding: 24px;
   background-color: #f5f5f5;
 }
+
+/* Unauthorized device banner */
+.layout-unauthorized-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background-color: #fff3e0;
+  border: 1px solid #ffb74d;
+  color: #e65100;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.layout-unauthorized-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border-radius: 50%;
+  background-color: #e65100;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
