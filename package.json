@@ -1,7 +1,7 @@
 {
   "name": "adb-tool",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.0",
   "description": "ADB GUI Tool for Android device management",
   "author": {
     "name": "leaf0412",
