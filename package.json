@@ -1,7 +1,12 @@
 {
   "name": "adb-tool",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.0.3",
+  "description": "ADB GUI Tool for Android device management",
+  "author": {
+    "name": "leaf0412",
+    "email": "leaf0412@users.noreply.github.com"
+  },
   "type": "module",
   "main": "dist-electron/main/index.js",
   "scripts": {

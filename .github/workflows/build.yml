@@ -227,7 +227,7 @@ jobs:
         run: npm test
 
       - name: Build Electron app
-        run: npm run electron:package
+        run: npm run electron:package -- --publish never
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
