@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, webUtils } from "electron";
 
 export interface ElectronAPI {
   invoke(channel: string, ...args: unknown[]): Promise<unknown>;
@@ -13,6 +13,7 @@ export interface ElectronAPI {
     options?: unknown,
   ): Promise<string | null>;
   convertFileSrc(path: string): string;
+  getPathForFile(file: File): string;
 }
 
 const api: ElectronAPI = {
@@ -42,6 +43,10 @@ const api: ElectronAPI = {
   convertFileSrc(path) {
     // Electron uses file:// protocol for local files
     return `file://${path}`;
+  },
+
+  getPathForFile(file) {
+    return webUtils.getPathForFile(file);
   },
 };
 

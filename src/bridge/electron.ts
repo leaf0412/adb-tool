@@ -19,6 +19,7 @@ interface ElectronAPI {
   showOpenDialog(options?: unknown): Promise<string | null>;
   showSaveDialog(options?: unknown): Promise<string | null>;
   convertFileSrc(path: string): string;
+  getPathForFile(file: File): string;
 }
 
 function getAPI(): ElectronAPI {
@@ -194,9 +195,9 @@ export const electronBridge: Bridge = {
       e.stopPropagation();
       const paths: string[] = [];
       if (e.dataTransfer?.files) {
+        const api = getAPI();
         for (const file of Array.from(e.dataTransfer.files)) {
-          // Electron adds `path` property to File objects
-          const filePath = (file as File & { path?: string }).path;
+          const filePath = api.getPathForFile(file);
           if (filePath) paths.push(filePath);
         }
       }
