@@ -151,9 +151,119 @@ jobs:
             src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: warn
 
+  # Electron build (parallel with Tauri)
+  build-electron:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos
+            os: macos-latest
+            adb-platform: darwin
+          - platform: linux
+            os: ubuntu-22.04
+            adb-platform: linux
+          - platform: windows
+            os: windows-latest
+            adb-platform: windows
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Download ADB platform-tools
+      - name: Download ADB (macOS/Linux)
+        if: matrix.platform != 'windows'
+        run: |
+          curl -L -o platform-tools.zip \
+            "https://dl.google.com/android/repository/platform-tools-latest-${{ matrix.adb-platform }}.zip"
+          unzip -q platform-tools.zip
+
+      - name: Download ADB (Windows)
+        if: matrix.platform == 'windows'
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Uri "https://dl.google.com/android/repository/platform-tools-latest-windows.zip" `
+            -OutFile platform-tools.zip
+          Expand-Archive -Path platform-tools.zip -DestinationPath .
+
+      # Setup ADB for Electron extraResources
+      - name: Setup ADB binary (macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          mkdir -p adb-bin/darwin
+          cp platform-tools/adb adb-bin/darwin/adb
+          chmod +x adb-bin/darwin/adb
+
+      - name: Setup ADB binary (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          mkdir -p adb-bin/linux
+          cp platform-tools/adb adb-bin/linux/adb
+          chmod +x adb-bin/linux/adb
+
+      - name: Setup ADB binary (Windows)
+        if: matrix.platform == 'windows'
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path adb-bin/windows
+          Copy-Item platform-tools/adb.exe adb-bin/windows/adb.exe
+          Copy-Item platform-tools/AdbWinApi.dll adb-bin/windows/
+          Copy-Item platform-tools/AdbWinUsbApi.dll adb-bin/windows/
+
+      # Build
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build Electron app
+        run: npm run electron:package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Upload Electron artifacts
+      - name: Upload macOS Electron artifacts
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ADB-Tool-Electron-macOS
+          path: |
+            release/*.dmg
+            release/*.zip
+          if-no-files-found: warn
+
+      - name: Upload Linux Electron artifacts
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ADB-Tool-Electron-Linux
+          path: |
+            release/*.deb
+            release/*.AppImage
+          if-no-files-found: warn
+
+      - name: Upload Windows Electron artifacts
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ADB-Tool-Electron-Windows
+          path: |
+            release/*.exe
+          if-no-files-found: warn
+
   # Create GitHub Release when triggered by a tag
   release:
-    needs: build
+    needs: [build, build-electron]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
@@ -169,5 +279,48 @@ jobs:
           draft: false
           generate_release_notes: true
           files: artifacts/**/*
+          body: |
+            ## 安装说明
+
+            本版本提供 **Tauri 版**（轻量原生）和 **Electron 版**（广泛兼容）两种打包。
+
+            ---
+
+            ### Tauri 版（推荐，体积更小）
+
+            #### macOS
+            下载 `.dmg` 文件，双击打开后拖入 Applications 文件夹。
+
+            #### Windows
+            - **推荐**：下载 Tauri 的 `.exe` 安装包（NSIS 安装器）
+            - 或下载 `.msi` 安装包
+
+            #### Linux（需要 Ubuntu 22.04+ / GLIBC 2.35+）
+            - **推荐**：下载 `.deb` 包安装
+              ```bash
+              sudo apt install -f ./ADB.Tool_*.deb
+              ```
+            - **其他发行版**：下载 `.AppImage` 文件
+              ```bash
+              chmod +x ADB.Tool_*.AppImage
+              ./ADB.Tool_*.AppImage
+              ```
+
+            > ⚠️ **Tauri 版最低系统要求：Ubuntu 22.04 / GLIBC 2.35**
+
+            ---
+
+            ### Electron 版（兼容性更好）
+
+            文件名包含 `Electron` 标识，适用于 Tauri 版无法运行的系统（如 Ubuntu 18.04/20.04）。
+
+            #### macOS
+            下载 `ADB-Tool-Electron-*-mac.dmg`。
+
+            #### Windows
+            下载 `ADB-Tool-Electron-*-win-setup.exe`。
+
+            #### Linux
+            下载 `.AppImage` 或 `.deb` 文件。
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
