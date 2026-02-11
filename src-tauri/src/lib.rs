@@ -248,6 +248,11 @@ fn get_op_logs(
     op_log::get_entries(&state, op_type.as_deref(), device.as_deref())
 }
 
+#[tauri::command]
+fn clear_op_logs(state: tauri::State<'_, op_log::OpLogState>) -> Result<(), String> {
+    op_log::clear_entries(&state)
+}
+
 // ---------------------------------------------------------------------------
 // App entry point
 // ---------------------------------------------------------------------------
@@ -283,6 +288,7 @@ pub fn run() {
             start_logcat,
             stop_logcat,
             get_op_logs,
+            clear_op_logs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

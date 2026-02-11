@@ -81,6 +81,13 @@ pub fn add_entry(state: &OpLogState, entry: OpLogEntry) {
     }
 }
 
+/// Clear all entries and persist the empty list to disk.
+pub fn clear_entries(state: &OpLogState) -> Result<(), String> {
+    let mut entries = state.entries.lock().expect("op_log lock poisoned");
+    entries.clear();
+    save_to_file(&entries)
+}
+
 /// Return entries, optionally filtered by `op_type` and/or `device`.
 pub fn get_entries(
     state: &OpLogState,
