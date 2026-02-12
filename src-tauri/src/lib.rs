@@ -4,6 +4,9 @@ mod error_codes;
 mod logcat;
 mod op_log;
 
+use tauri::Emitter;
+use tauri_plugin_updater::UpdaterExt;
+
 // ---------------------------------------------------------------------------
 // Tauri commands — thin wrappers around adb module functions
 // ---------------------------------------------------------------------------
@@ -259,6 +262,77 @@ fn clear_op_logs(state: tauri::State<'_, op_log::OpLogState>) -> Result<(), Stri
     op_log::clear_entries(&state)
 }
 
+#[tauri::command]
+async fn check_for_updates(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
+    let updater = app
+        .updater_builder()
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    match updater.check().await {
+        Ok(Some(update)) => Ok(serde_json::json!({
+            "available": true,
+            "version": update.version,
+            "body": update.body.unwrap_or_default(),
+        })),
+        Ok(None) => Ok(serde_json::json!({
+            "available": false,
+            "version": "",
+            "body": "",
+        })),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+async fn download_and_install_update(app: tauri::AppHandle) -> Result<(), String> {
+    let updater = app
+        .updater_builder()
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let update = updater
+        .check()
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "No update available".to_string())?;
+
+    let mut downloaded: u64 = 0;
+
+    update
+        .download_and_install(
+            |chunk_len, content_length| {
+                downloaded += chunk_len as u64;
+                let total = content_length.unwrap_or(0);
+                let percent = if total > 0 {
+                    (downloaded as f64 / total as f64) * 100.0
+                } else {
+                    0.0
+                };
+                let _ = app.emit("update-progress", serde_json::json!({
+                    "percent": percent,
+                    "transferred": downloaded,
+                    "total": total,
+                }));
+            },
+            || {},
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+fn get_app_version(app: tauri::AppHandle) -> String {
+    app.package_info().version.to_string()
+}
+
+#[tauri::command]
+fn restart_app(app: tauri::AppHandle) {
+    app.restart();
+}
+
 // ---------------------------------------------------------------------------
 // App entry point
 // ---------------------------------------------------------------------------
@@ -271,6 +345,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(logcat::LogcatState::new())
         .manage(op_log::OpLogState::new())
         .invoke_handler(tauri::generate_handler![
@@ -295,6 +370,10 @@ pub fn run() {
             stop_logcat,
             get_op_logs,
             clear_op_logs,
+            check_for_updates,
+            download_and_install_update,
+            get_app_version,
+            restart_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -34,6 +34,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "createUpdaterArtifacts": true,
     "externalBin": ["adb"],
     "linux": {
       "deb": {
@@ -43,6 +44,14 @@
           "libayatana-appindicator3-1"
         ]
       }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "",
+      "endpoints": [
+        "https://github.com/leaf0412/adb-tool/releases/latest/download/latest.json"
+      ]
     }
   }
 }
