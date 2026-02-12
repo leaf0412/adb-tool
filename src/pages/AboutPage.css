@@ -1,0 +1,113 @@
+.about-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding-top: 40px;
+}
+
+/* App info */
+.about-app-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.about-app-name {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.about-app-version {
+  font-size: 14px;
+  color: #888;
+}
+
+/* Update section */
+.about-update-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 32px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  min-width: 320px;
+}
+
+.about-update-status {
+  font-size: 13px;
+  color: #888;
+}
+
+.about-update-status--available {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.about-update-status--error {
+  color: #b71c1c;
+}
+
+.about-btn {
+  padding: 8px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #1a1a2e;
+  color: #ffffff;
+  transition: background-color 0.15s;
+}
+
+.about-btn:hover:not(:disabled) {
+  background-color: #2d2d5e;
+}
+
+.about-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Progress bar */
+.about-progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.about-progress-fill {
+  height: 100%;
+  background-color: #1a1a2e;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.about-progress-text {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Links */
+.about-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.about-link {
+  font-size: 13px;
+  color: #1a1a2e;
+  text-decoration: none;
+}
+
+.about-link:hover {
+  text-decoration: underline;
+}
