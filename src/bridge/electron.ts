@@ -20,6 +20,7 @@ interface ElectronAPI {
   showSaveDialog(options?: unknown): Promise<string | null>;
   convertFileSrc(path: string): string;
   getPathForFile(file: File): string;
+  onUpdateProgress(callback: (progress: unknown) => void): () => void;
 }
 
 function getAPI(): ElectronAPI {
@@ -174,6 +175,35 @@ export const electronBridge: Bridge = {
 
   convertFileSrc(path) {
     return getAPI().convertFileSrc(path);
+  },
+
+  async checkForUpdates() {
+    return (await getAPI().invoke("check-for-updates")) as {
+      available: boolean;
+      version: string;
+      body: string;
+    };
+  },
+
+  async downloadUpdate() {
+    await getAPI().invoke("download-update");
+  },
+
+  async installUpdate() {
+    await getAPI().invoke("install-update");
+  },
+
+  async onUpdateProgress(callback) {
+    const unlisten = getAPI().onUpdateProgress((progress) => {
+      callback(
+        progress as { percent: number; transferred: number; total: number },
+      );
+    });
+    return unlisten;
+  },
+
+  async getAppVersion() {
+    return (await getAPI().invoke("get-app-version")) as string;
   },
 
   async onDragDrop(callback): Promise<UnlistenFn> {
