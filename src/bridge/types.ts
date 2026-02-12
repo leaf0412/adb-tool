@@ -28,6 +28,26 @@ export interface DragDropPayload {
   paths: string[];
 }
 
+export interface UpdateInfo {
+  available: boolean;
+  version: string;
+  body: string;
+}
+
+export interface UpdateProgress {
+  percent: number;
+  transferred: number;
+  total: number;
+}
+
+export type UpdateStatus =
+  | "idle"
+  | "checking"
+  | "available"
+  | "downloading"
+  | "ready"
+  | "error";
+
 export interface Bridge {
   getDevices(): Promise<AdbDevice[]>;
   getDeviceDetail(serial: string): Promise<DeviceDetail>;
@@ -74,4 +94,11 @@ export interface Bridge {
   onDragDrop(
     callback: (payload: DragDropPayload) => void,
   ): Promise<UnlistenFn>;
+  checkForUpdates(): Promise<UpdateInfo>;
+  downloadUpdate(): Promise<void>;
+  installUpdate(): Promise<void>;
+  onUpdateProgress(
+    callback: (progress: UpdateProgress) => void,
+  ): Promise<UnlistenFn>;
+  getAppVersion(): Promise<string>;
 }

@@ -1,5 +1,5 @@
 import type { Bridge } from "./types";
-export type { Bridge, UnlistenFn, DragDropPayload } from "./types";
+export type { Bridge, UnlistenFn, DragDropPayload, UpdateInfo, UpdateProgress, UpdateStatus } from "./types";
 
 let bridgeInstance: Bridge | null = null;
 
