@@ -36,3 +36,7 @@ linux:
     - deb
   artifactName: ${productName}-Electron-${version}-linux.${ext}
   category: Utility
+publish:
+  provider: github
+  owner: leaf0412
+  repo: adb-tool

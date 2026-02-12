@@ -5,6 +5,7 @@ import { extractPackageName } from "./apk-parser";
 import * as opLog from "./op-log";
 import * as logcat from "./logcat";
 import type { OpLogEntry } from "../src/types";
+import { autoUpdater } from "electron-updater";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -264,6 +265,55 @@ function registerIpcHandlers(): void {
       return result.filePath;
     },
   );
+
+  // Auto-update handlers
+  ipcMain.handle("check-for-updates", async () => {
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      if (!result || !result.updateInfo) {
+        return { available: false, version: "", body: "" };
+      }
+      const { updateInfo } = result;
+      const currentVersion = app.getVersion();
+      const latestVersion = updateInfo.version;
+      const available = latestVersion !== currentVersion;
+      return {
+        available,
+        version: latestVersion,
+        body:
+          typeof updateInfo.releaseNotes === "string"
+            ? updateInfo.releaseNotes
+            : "",
+      };
+    } catch {
+      return { available: false, version: "", body: "" };
+    }
+  });
+
+  ipcMain.handle("download-update", async () => {
+    await autoUpdater.downloadUpdate();
+  });
+
+  ipcMain.handle("install-update", () => {
+    autoUpdater.quitAndInstall();
+  });
+
+  ipcMain.handle("get-app-version", () => {
+    return app.getVersion();
+  });
+}
+
+function setupAutoUpdater(): void {
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = false;
+
+  autoUpdater.on("download-progress", (progress) => {
+    mainWindow?.webContents.send("update-progress", {
+      percent: progress.percent,
+      transferred: progress.transferred,
+      total: progress.total,
+    });
+  });
 }
 
 // -------------------------------------------------------------------------
@@ -274,6 +324,7 @@ app.whenReady().then(() => {
   logcat.cleanupOldLogs();
   opLog.initOpLog();
   registerIpcHandlers();
+  setupAutoUpdater();
   createWindow();
 
   app.on("activate", () => {
