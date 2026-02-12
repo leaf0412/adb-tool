@@ -191,6 +191,12 @@ function registerIpcHandlers(): void {
     },
   );
 
+  ipcMain.handle(
+    "delete-remote-file",
+    (_e, serial: string, remotePath: string) =>
+      adb.deleteFile(serial, remotePath),
+  );
+
   // Screenshot with op-log
   ipcMain.handle(
     "take-screenshot",

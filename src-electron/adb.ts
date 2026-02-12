@@ -377,11 +377,26 @@ export async function listFiles(
   serial: string,
   remoteDir: string,
 ): Promise<string[]> {
-  const output = await execDevice(serial, ["shell", "ls", "-la", remoteDir]);
-  return output
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
+  try {
+    const output = await execDevice(serial, ["shell", "ls", "-la", remoteDir]);
+    return output
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+  } catch (err) {
+    const msg = String(err);
+    if (msg.includes("No such file or directory")) {
+      return [];
+    }
+    throw err;
+  }
+}
+
+export async function deleteFile(
+  serial: string,
+  remotePath: string,
+): Promise<string> {
+  return execDevice(serial, ["shell", "rm", "-f", remotePath]);
 }
 
 // -------------------------------------------------------------------------

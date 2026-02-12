@@ -73,6 +73,10 @@ export const tauriBridge: Bridge = {
     return invoke<string>("pull_file", { serial, remotePath, localPath });
   },
 
+  deleteRemoteFile(serial, remotePath) {
+    return invoke<string>("delete_remote_file", { serial, remotePath });
+  },
+
   takeScreenshot(serial, localPath) {
     return invoke<string>("take_screenshot", { serial, localPath });
   },

@@ -213,6 +213,15 @@ async fn list_remote_files(
 }
 
 #[tauri::command]
+async fn delete_remote_file(
+    app: tauri::AppHandle,
+    serial: String,
+    remote_path: String,
+) -> Result<String, String> {
+    adb::delete_file(&app, &serial, &remote_path).await
+}
+
+#[tauri::command]
 async fn connect_wifi(
     app: tauri::AppHandle,
     address: String,
@@ -362,6 +371,7 @@ pub fn run() {
             push_file,
             pull_file,
             list_remote_files,
+            delete_remote_file,
             connect_wifi,
             disconnect_wifi,
             kill_server,

@@ -76,6 +76,7 @@ export interface Bridge {
     remotePath: string,
     localPath: string,
   ): Promise<string>;
+  deleteRemoteFile(serial: string, remotePath: string): Promise<string>;
   takeScreenshot(serial: string, localPath: string): Promise<string>;
   startLogcat(serial: string): Promise<number>;
   stopLogcat(serial: string): Promise<void>;

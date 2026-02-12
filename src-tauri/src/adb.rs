@@ -450,18 +450,33 @@ pub async fn pull_file(
 }
 
 /// List files in a remote directory via `ls -la`.
+/// Returns empty vec if the directory does not exist.
 pub async fn list_files(
     app: &AppHandle,
     serial: &str,
     remote_dir: &str,
 ) -> Result<Vec<String>, String> {
-    let output = exec_device(app, serial, &["shell", "ls", "-la", remote_dir]).await?;
-    let files: Vec<String> = output
-        .lines()
-        .map(|l| l.trim().to_string())
-        .filter(|l| !l.is_empty())
-        .collect();
-    Ok(files)
+    match exec_device(app, serial, &["shell", "ls", "-la", remote_dir]).await {
+        Ok(output) => {
+            let files: Vec<String> = output
+                .lines()
+                .map(|l| l.trim().to_string())
+                .filter(|l| !l.is_empty())
+                .collect();
+            Ok(files)
+        }
+        Err(e) if e.contains("No such file or directory") => Ok(vec![]),
+        Err(e) => Err(e),
+    }
+}
+
+/// Delete a remote file.
+pub async fn delete_file(
+    app: &AppHandle,
+    serial: &str,
+    remote_path: &str,
+) -> Result<String, String> {
+    exec_device(app, serial, &["shell", "rm", "-f", remote_path]).await
 }
 
 // ---------------------------------------------------------------------------

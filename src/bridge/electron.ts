@@ -130,6 +130,14 @@ export const electronBridge: Bridge = {
     )) as string;
   },
 
+  async deleteRemoteFile(serial, remotePath) {
+    return (await getAPI().invoke(
+      "delete-remote-file",
+      serial,
+      remotePath,
+    )) as string;
+  },
+
   async takeScreenshot(serial, localPath) {
     return (await getAPI().invoke(
       "take-screenshot",
