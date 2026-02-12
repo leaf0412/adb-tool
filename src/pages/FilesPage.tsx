@@ -12,6 +12,8 @@ interface FileEntry {
 const QUICK_PATHS = [
   { label: "Download", path: "/sdcard/Download/" },
   { label: "DCIM", path: "/sdcard/DCIM/" },
+  { label: "截图", path: ["/sdcard/DCIM/Screenshots/", "/sdcard/Pictures/Screenshots/", "/sdcard/Screenshots/"] },
+  { label: "录屏", path: ["/sdcard/DCIM/ScreenRecorder/", "/sdcard/Movies/", "/sdcard/DCIM/ScreenRecords/"] },
   { label: "Pictures", path: "/sdcard/Pictures/" },
   { label: "Documents", path: "/sdcard/Documents/" },
 ];
@@ -42,7 +44,7 @@ function FilesPage() {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string>("");
-  const [screenshotPath, setScreenshotPath] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   // Auto-select first connected device
   useEffect(() => {
@@ -115,6 +117,41 @@ function FilesPage() {
     [remotePath, loadFiles]
   );
 
+  // Try multiple paths in order, use first one that has files
+  const loadFilesWithFallback = useCallback(
+    async (paths: string[]) => {
+      if (!selectedDevice) return;
+      setLoading(true);
+      setStatus("");
+      for (const path of paths) {
+        try {
+          const lines = await bridge().listRemoteFiles(selectedDevice, path);
+          if (lines.length === 0) continue;
+          const entries: FileEntry[] = [];
+          for (const line of lines) {
+            const entry = parseLsLine(line);
+            if (entry) entries.push(entry);
+          }
+          entries.sort((a, b) => {
+            if (a.isDirectory !== b.isDirectory) return a.isDirectory ? -1 : 1;
+            return a.name.localeCompare(b.name);
+          });
+          setFiles(entries);
+          setRemotePath(path);
+          setPathInput(path);
+          setLoading(false);
+          return;
+        } catch {
+          // Try next path
+        }
+      }
+      setStatus("目录不存在");
+      setFiles([]);
+      setLoading(false);
+    },
+    [selectedDevice]
+  );
+
   const handleBrowse = useCallback(() => {
     let path = pathInput.trim();
     if (!path) return;
@@ -132,7 +169,6 @@ function FilesPage() {
     setStatus("正在截图...");
     try {
       await bridge().takeScreenshot(selectedDevice, savePath);
-      setScreenshotPath(savePath);
       setStatus("截图已保存: " + savePath);
     } catch (err) {
       setStatus("截图失败: " + String(err));
@@ -169,6 +205,25 @@ function FilesPage() {
       }
     },
     [selectedDevice, remotePath]
+  );
+
+  const handleDelete = useCallback(
+    async (fileName: string) => {
+      if (!selectedDevice) return;
+      setStatus("正在删除...");
+      setDeleteTarget(null);
+      try {
+        await bridge().deleteRemoteFile(
+          selectedDevice,
+          remotePath + fileName,
+        );
+        setStatus("已删除: " + fileName);
+        loadFiles();
+      } catch (err) {
+        setStatus("删除失败: " + String(err));
+      }
+    },
+    [selectedDevice, remotePath, loadFiles],
   );
 
   const isNotRoot = remotePath !== "/";
@@ -219,19 +274,27 @@ function FilesPage() {
 
       {/* Quick path buttons */}
       <div className="files-quick-paths">
-        {QUICK_PATHS.map((qp) => (
-          <button
-            key={qp.path}
-            className={
-              "files-quick-btn" +
-              (remotePath === qp.path ? " files-quick-btn--active" : "")
-            }
-            onClick={() => loadFiles(qp.path)}
-            disabled={!selectedDevice}
-          >
-            {qp.label}
-          </button>
-        ))}
+        {QUICK_PATHS.map((qp) => {
+          const paths = Array.isArray(qp.path) ? qp.path : [qp.path];
+          const isActive = paths.includes(remotePath);
+          return (
+            <button
+              key={qp.label}
+              className={
+                "files-quick-btn" +
+                (isActive ? " files-quick-btn--active" : "")
+              }
+              onClick={() =>
+                Array.isArray(qp.path)
+                  ? loadFilesWithFallback(qp.path)
+                  : loadFiles(qp.path)
+              }
+              disabled={!selectedDevice}
+            >
+              {qp.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Path input bar */}
@@ -289,15 +352,26 @@ function FilesPage() {
               </span>
               <span className="files-row-name">{entry.name}</span>
               {!entry.isDirectory && (
-                <button
-                  className="files-btn files-btn--small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownload(entry.name);
-                  }}
-                >
-                  下载
-                </button>
+                <div className="files-row-actions">
+                  <button
+                    className="files-btn files-btn--small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(entry.name);
+                    }}
+                  >
+                    下载
+                  </button>
+                  <button
+                    className="files-btn files-btn--small files-btn--danger"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteTarget(entry.name);
+                    }}
+                  >
+                    删除
+                  </button>
+                </div>
               )}
             </div>
           ))}
@@ -308,31 +382,37 @@ function FilesPage() {
         </div>
       )}
 
-      {/* Screenshot preview */}
-      {screenshotPath && (
-        <div className="files-screenshot-section">
-          <h3 className="files-section-title">截图预览</h3>
-          <div className="files-screenshot-preview">
-            <img
-              src={bridge().convertFileSrc(screenshotPath)}
-              alt="screenshot"
-              className="files-screenshot-img"
-              onError={(e) => {
-                // If convertFileSrc fails to load, fall back to showing path
-                (e.target as HTMLImageElement).style.display = "none";
-                const parent = (e.target as HTMLImageElement).parentElement;
-                if (parent) {
-                  const fallback = document.createElement("span");
-                  fallback.className = "files-screenshot-fallback";
-                  fallback.textContent = screenshotPath;
-                  parent.appendChild(fallback);
-                }
-              }}
-            />
+      {/* Delete confirmation dialog */}
+      {deleteTarget && (
+        <div
+          className="files-confirm-overlay"
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div
+            className="files-confirm-dialog"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="files-confirm-message">
+              确定要删除文件「{deleteTarget}」吗？
+            </p>
+            <div className="files-confirm-actions">
+              <button
+                className="files-confirm-btn files-confirm-btn--cancel"
+                onClick={() => setDeleteTarget(null)}
+              >
+                取消
+              </button>
+              <button
+                className="files-confirm-btn files-confirm-btn--danger"
+                onClick={() => handleDelete(deleteTarget)}
+              >
+                删除
+              </button>
+            </div>
           </div>
-          <div className="files-screenshot-path">{screenshotPath}</div>
         </div>
       )}
+
     </div>
   );
 }

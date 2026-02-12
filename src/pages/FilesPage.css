@@ -242,6 +242,82 @@
   font-weight: 500;
 }
 
+.files-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.files-btn--danger {
+  background-color: #c0392b;
+}
+
+.files-btn--danger:hover:not(:disabled) {
+  background-color: #e74c3c;
+}
+
+/* Delete confirmation overlay */
+.files-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.files-confirm-dialog {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.files-confirm-message {
+  font-size: 14px;
+  color: #1a1a2e;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.files-confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.files-confirm-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.files-confirm-btn--cancel {
+  background-color: #e0e0e0;
+  color: #1a1a2e;
+}
+
+.files-confirm-btn--cancel:hover {
+  background-color: #d0d0d0;
+}
+
+.files-confirm-btn--danger {
+  background-color: #c0392b;
+  color: #ffffff;
+}
+
+.files-confirm-btn--danger:hover {
+  background-color: #e74c3c;
+}
+
 /* Screenshot section */
 .files-screenshot-section {
   padding: 16px;
