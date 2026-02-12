@@ -5,7 +5,8 @@ import { extractPackageName } from "./apk-parser";
 import * as opLog from "./op-log";
 import * as logcat from "./logcat";
 import type { OpLogEntry } from "../src/types";
-import { autoUpdater } from "electron-updater";
+import pkg from "electron-updater";
+const { autoUpdater } = pkg;
 
 let mainWindow: BrowserWindow | null = null;
 
