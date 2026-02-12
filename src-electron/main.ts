@@ -268,26 +268,30 @@ function registerIpcHandlers(): void {
 
   // Auto-update handlers
   ipcMain.handle("check-for-updates", async () => {
-    try {
-      const result = await autoUpdater.checkForUpdates();
-      if (!result || !result.updateInfo) {
-        return { available: false, version: "", body: "" };
-      }
-      const { updateInfo } = result;
-      const currentVersion = app.getVersion();
-      const latestVersion = updateInfo.version;
-      const available = latestVersion !== currentVersion;
-      return {
-        available,
-        version: latestVersion,
-        body:
-          typeof updateInfo.releaseNotes === "string"
-            ? updateInfo.releaseNotes
-            : "",
-      };
-    } catch {
+    const result = await autoUpdater.checkForUpdates();
+    if (!result || !result.updateInfo) {
       return { available: false, version: "", body: "" };
     }
+    const { updateInfo } = result;
+    const currentVersion = app.getVersion();
+    const latestVersion = updateInfo.version;
+    // Compare versions: split into parts and check if latest is newer
+    const current = currentVersion.split(".").map(Number);
+    const latest = latestVersion.split(".").map(Number);
+    let available = false;
+    for (let i = 0; i < Math.max(current.length, latest.length); i++) {
+      const c = current[i] ?? 0;
+      const l = latest[i] ?? 0;
+      if (l > c) { available = true; break; }
+      if (l < c) { break; }
+    }
+    let body = "";
+    if (typeof updateInfo.releaseNotes === "string") {
+      body = updateInfo.releaseNotes;
+    } else if (Array.isArray(updateInfo.releaseNotes)) {
+      body = updateInfo.releaseNotes.map((n) => n.note).join("\n");
+    }
+    return { available, version: latestVersion, body };
   });
 
   ipcMain.handle("download-update", async () => {

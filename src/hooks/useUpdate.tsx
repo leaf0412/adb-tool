@@ -1,8 +1,23 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, createContext, useContext } from "react";
+import type { ReactNode } from "react";
 import { bridge } from "../bridge";
 import type { UpdateInfo, UpdateProgress, UpdateStatus } from "../bridge";
 
-export function useUpdate() {
+interface UpdateContextValue {
+  status: UpdateStatus;
+  updateInfo: UpdateInfo | null;
+  progress: UpdateProgress | null;
+  error: string | null;
+  appVersion: string;
+  check: () => Promise<UpdateInfo | null>;
+  download: () => Promise<void>;
+  install: () => Promise<void>;
+  dismiss: () => void;
+}
+
+const UpdateContext = createContext<UpdateContextValue | null>(null);
+
+export function UpdateProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<UpdateStatus>("idle");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [progress, setProgress] = useState<UpdateProgress | null>(null);
@@ -73,5 +88,15 @@ export function useUpdate() {
     check().catch(() => {});
   }, [check]);
 
-  return { status, updateInfo, progress, error, appVersion, check, download, install, dismiss };
+  const value: UpdateContextValue = {
+    status, updateInfo, progress, error, appVersion, check, download, install, dismiss,
+  };
+
+  return <UpdateContext value={value}>{children}</UpdateContext>;
+}
+
+export function useUpdate(): UpdateContextValue {
+  const ctx = useContext(UpdateContext);
+  if (!ctx) throw new Error("useUpdate must be used within UpdateProvider");
+  return ctx;
 }
