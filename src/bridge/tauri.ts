@@ -132,4 +132,31 @@ export const tauriBridge: Bridge = {
     );
     return unlisten;
   },
+
+  async checkForUpdates() {
+    return invoke<{ available: boolean; version: string; body: string }>(
+      "check_for_updates",
+    );
+  },
+
+  async downloadUpdate() {
+    await invoke("download_and_install_update");
+  },
+
+  async installUpdate() {
+    await invoke("restart_app");
+  },
+
+  async onUpdateProgress(callback) {
+    return listen<{ percent: number; transferred: number; total: number }>(
+      "update-progress",
+      (event) => {
+        callback(event.payload);
+      },
+    );
+  },
+
+  async getAppVersion() {
+    return invoke<string>("get_app_version");
+  },
 };
