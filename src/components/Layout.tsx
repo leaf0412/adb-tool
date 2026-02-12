@@ -14,7 +14,7 @@ import "./Layout.css";
 const navItems = [
   { to: "/", label: "设备管理" },
   { to: "/install", label: "安装 APK" },
-  { to: "/apps", label: "应用管理" },
+  // { to: "/apps", label: "应用管理" },
   { to: "/logcat", label: "日志查看" },
   { to: "/files", label: "文件传输" },
   { to: "/oplog", label: "操作记录" },
